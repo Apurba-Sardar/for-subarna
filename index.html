@@ -271,6 +271,21 @@ body[data-tone="light"] .steps i.on{background:linear-gradient(90deg,#e39a2a,#d2
 .invite::before{content:"";position:absolute;inset:6px;border-radius:14px;border:1px dashed rgba(227,154,42,.5);pointer-events:none}
 .scene[data-tone="light"] .sub{color:var(--plum)}
 h1.script{letter-spacing:.01em}
+/* ---------- music toggle ---------- */
+.music{position:fixed;top:max(8px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));z-index:7;
+  display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 12px;border-radius:999px;
+  border:1px solid var(--glass-line);background:rgba(20,10,60,.38);color:#fff;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:0 6px 18px rgba(20,5,60,.3);transition:background .3s ease,transform .18s ease}
+.music:active{transform:scale(.95)}
+.music .ic{font-size:1.15rem;color:var(--gold)}
+.music .bars{display:flex;align-items:flex-end;gap:2px;height:14px}
+.music .bars i{display:block;width:3px;height:4px;border-radius:2px;background:var(--rose);transition:height .3s ease}
+.music.on .bars i{animation:eq .9s ease-in-out infinite}
+.music.on .bars i:nth-child(2){animation-delay:-.3s}
+.music.on .bars i:nth-child(3){animation-delay:-.6s}
+@keyframes eq{0%,100%{height:4px}50%{height:14px}}
+body[data-tone="light"] .music{background:rgba(255,255,255,.62);color:var(--plum);border-color:#fff}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01s!important}
 }
@@ -293,6 +308,7 @@ h1.script{letter-spacing:.01em}
     <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.200" y="10.500" width="17.600" height="11" rx="1.500"/><rect x="2" y="6.500" width="20" height="4.200" rx="1.300"/><rect x="10.600" y="6.500" width="2.800" height="15" fill="var(--cut)"/><path d="M12 6.300C10.500 2.600 6.800 2 6.300 4s2.800 2.800 5.700 2.300zM12 6.300c1.500-3.700 5.200-4.300 5.700-2.300s-2.800 2.800-5.700 2.300z"/></symbol>
     <symbol id="i-flower" viewBox="0 0 24 24"><g><circle cx="12" cy="5.500" r="3.600"/><circle cx="18.200" cy="10" r="3.600"/><circle cx="15.800" cy="17.300" r="3.600"/><circle cx="8.200" cy="17.300" r="3.600"/><circle cx="5.800" cy="10" r="3.600"/></g><circle cx="12" cy="12" r="3" fill="var(--cut)"/></symbol>
 
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M9 3v10.55A4 4 0 1011 17V7h4V3z"/></symbol>
     <symbol id="castle" viewBox="0 0 320 250">
       <ellipse cx="160" cy="241" rx="152" ry="8" fill="#0e0833" opacity=".4"/>
       <g stroke="#ffd0ec" stroke-width="2" stroke-linecap="round"><path d="M90 64V40M160 28V4M230 64V40"/></g>
@@ -383,6 +399,7 @@ h1.script{letter-spacing:.01em}
 <canvas class="fx" id="fx-fg" aria-hidden="true"></canvas>
 
 <div class="steps" id="steps" aria-hidden="true"></div>
+<button class="music" id="music" type="button" aria-pressed="false" aria-label="Turn the music on"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></button>
 <main class="stage">
 
   <!-- 1. the invitation -->
@@ -738,9 +755,81 @@ h1.script{letter-spacing:.01em}
   }
   $$("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
 
+  /* ================= music box ================= */
+  /* A small original waltz played by a synthesised music box, so nothing has to download. */
+  const musicBtn = $("#music");
+  const BPM = 92, BEAT = 60 / BPM, BAR = 3, TOTAL = 48;
+  const midi = n => 440 * Math.pow(2, (n - 69) / 12);
+  const MEL = [
+    [76,1],[79,1],[84,1],  [83,2],[79,1],  [81,1],[84,1],[88,1],  [86,2],[84,1],
+    [88,1],[86,.5],[84,.5],[83,1],  [79,2],[81,1],  [81,1],[79,1],[77,1],  [76,3],
+    [84,1],[88,1],[81,1],  [83,1],[79,1],[76,1],  [77,1],[81,1],[84,1],  [86,2],[83,1],
+    [88,1],[91,1],[88,1],  [84,1.5],[83,.5],[81,1],  [77,1],[79,1],[81,1],  [79,1.5],[83,.5],[84,1]
+  ];
+  const CH = [[48,52,55],[43,47,50],[45,48,52],[41,45,48],[48,52,55],[43,47,50],[41,45,48],[43,47,50],
+              [45,48,52],[40,43,47],[41,45,48],[43,47,50],[48,52,55],[45,48,52],[41,45,48],[43,47,50]];
+  const EV = [];
+  let beat = 0;
+  for (const [m, d] of MEL) { EV.push({ b: beat, m, v: .5, d: Math.max(1.1, d * BEAT * 1.6) }); beat += d; }
+  CH.forEach((c, i) => {
+    const b0 = i * BAR;
+    EV.push({ b: b0, m: c[0], v: .34, d: 2.2 });
+    EV.push({ b: b0 + 1, m: c[1] + 12, v: .2, d: 1.2 });
+    EV.push({ b: b0 + 2, m: c[2] + 12, v: .2, d: 1.2 });
+  });
+  EV.sort((a, b) => a.b - b.b);
+  let ac = null, master = null, timer = null, evI = 0, loopStart = 0, musicOn = false, musicTouched = false;
+  function setupAudio() {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain(); master.gain.value = 0;
+    const delay = ac.createDelay(1); delay.delayTime.value = .36;
+    const fb = ac.createGain(); fb.gain.value = .28;
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2200;
+    const wet = ac.createGain(); wet.gain.value = .35;
+    master.connect(ac.destination);
+    master.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(ac.destination);
+  }
+  function pluck(f, t, vel, dur) {
+    const o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain(), g2 = ac.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    o2.type = "sine"; o2.frequency.value = f * 4;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(vel * .16, t + .004); g2.gain.exponentialRampToValueAtTime(.0001, t + dur * .3);
+    o.connect(g).connect(master); o2.connect(g2).connect(master);
+    o.start(t); o2.start(t); o.stop(t + dur + .05); o2.stop(t + dur + .05);
+  }
+  function schedule() {
+    for (;;) {
+      const e = EV[evI], t = loopStart + e.b * BEAT;
+      if (t > ac.currentTime + .45) break;
+      pluck(midi(e.m), t, e.v, e.d);
+      if (++evI >= EV.length) { evI = 0; loopStart += TOTAL * BEAT; }
+    }
+  }
+  function musicStart() {
+    if (!ac) setupAudio();
+    if (ac.state === "suspended") ac.resume();
+    musicOn = true;
+    master.gain.cancelScheduledValues(ac.currentTime);
+    master.gain.setTargetAtTime(.22, ac.currentTime, .4);
+    if (!timer) { evI = 0; loopStart = ac.currentTime + .15; schedule(); timer = setInterval(schedule, 120); }
+    musicBtn.classList.add("on"); musicBtn.setAttribute("aria-pressed", "true"); musicBtn.setAttribute("aria-label", "Turn the music off");
+  }
+  function musicStop() {
+    musicOn = false;
+    if (ac) { master.gain.cancelScheduledValues(ac.currentTime); master.gain.setTargetAtTime(0, ac.currentTime, .25); }
+    clearInterval(timer); timer = null;
+    musicBtn.classList.remove("on"); musicBtn.setAttribute("aria-pressed", "false"); musicBtn.setAttribute("aria-label", "Turn the music on");
+  }
+  musicBtn.addEventListener("click", () => { musicTouched = true; musicOn ? musicStop() : musicStart(); });
+  document.addEventListener("visibilitychange", () => {
+    if (!ac || !musicOn) return;
+    if (document.hidden) ac.suspend(); else ac.resume();
+  });
   /* ================= 1. the envelope ================= */
   const intro = $("#s-intro"), env = $("#env");
   $("#open-invite").addEventListener("click", () => {
+    if (!musicTouched && !musicOn) musicStart();
     if (intro.dataset.step !== "hello") return;
     intro.dataset.step = "envelope";
     wait(() => env.classList.add("open"), 650);
