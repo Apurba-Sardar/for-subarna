@@ -1,4 +1,7 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#150f4a">
+<meta property="og:title" content="A Kingdom for a Princess">
+<meta property="og:description" content="A tiny Princess Day surprise. Tap to open the gates."><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>A Kingdom for a Princess</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Dancing+Script:wght@600;700&family=Nunito:wght@500;700;800&display=swap">
@@ -136,7 +139,7 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
 .invite{
   width:min(330px,100%);padding:26px 24px 22px;border-radius:20px;
   background:linear-gradient(170deg,#fffdf8 0%,#fff3dc 60%,#ffe6c2 100%);
-  border:2px solid var(--gold);outline:1px solid rgba(227,154,42,.55);outline-offset:-9px;
+  border:2px solid var(--gold);
   box-shadow:0 0 0 5px rgba(255,200,97,.22),0 18px 40px rgba(60,10,110,.5),0 0 46px rgba(255,214,140,.45);
   color:var(--plum);display:flex;flex-direction:column;align-items:center;gap:12px;
 }
@@ -154,10 +157,9 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
   color:#fff;text-align:left;
 }
 .glass p+p{margin-top:.9em}
-.chips{display:flex;justify-content:center;gap:8px;width:100%}
-.chip{flex:1 1 0;min-width:0;padding:12px 6px;border-radius:16px;background:linear-gradient(180deg,#fff,#fdeaf6);color:var(--plum);font-weight:800;font-size:.86rem;line-height:1.3;box-shadow:0 8px 20px rgba(60,10,110,.3)}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%}
+.chip{flex:1 1 124px;min-width:0;padding:12px 6px;border-radius:16px;background:linear-gradient(180deg,#fff,#fdeaf6);color:var(--plum);font-weight:800;font-size:.86rem;line-height:1.3;box-shadow:0 8px 20px rgba(60,10,110,.3)}
 .chip small{display:block;font-size:.86rem;font-weight:800;color:var(--rose-deep)}
-@media (max-width:359px){.chips{flex-direction:column}}
 
 /* ---------- scene 3: letter ---------- */
 .letter{position:relative;width:100%;padding:12px 12px 30px;border-radius:20px;background:linear-gradient(180deg,#f47cbc,#e254a6);box-shadow:0 18px 38px rgba(170,40,120,.32);cursor:pointer}
@@ -175,7 +177,7 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
 
 /* ---------- scene 4: cards ---------- */
 .deck{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
-.card{aspect-ratio:3/4;min-height:152px;padding:0;border:0;background:none;perspective:800px}
+.card{aspect-ratio:4/5;min-height:152px;padding:0;border:0;background:none;perspective:800px}
 .card-in{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.25,.5,1)}
 .card.flipped .card-in{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:16px;-webkit-backface-visibility:hidden;backface-visibility:hidden}
@@ -189,7 +191,7 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
 .back .label{font-size:.64rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--rose-deep);line-height:1.25}
 .back .say{font-size:.82rem;font-weight:700;line-height:1.32}
 .counter{padding:6px 16px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid var(--glass-line);font-weight:700;font-size:.92rem;color:#fff;font-variant-numeric:tabular-nums}
-@media (max-width:359px){.deck{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:429px){.deck{grid-template-columns:repeat(2,minmax(0,1fr))}.card{min-height:0}.front .name{font-size:1.5rem}.back .say{font-size:.92rem}}
 
 /* ---------- scene 5: gift ---------- */
 .gift-wrap{position:relative;width:min(300px,88%);margin-top:6px}
@@ -234,6 +236,41 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
 .hug-line{font-size:clamp(1.6rem,6.6vw,2.1rem)!important;font-weight:600}
 #s-hug{align-items:center}
 
+/* ---------- cute extras ---------- */
+.clouds{position:fixed;left:-10vw;right:-10vw;bottom:-8vh;height:40vh;z-index:1;pointer-events:none;opacity:.6;
+  background:
+    radial-gradient(40% 62% at 10% 100%,rgba(255,170,225,.6),transparent 70%),
+    radial-gradient(34% 56% at 48% 110%,rgba(226,170,255,.55),transparent 70%),
+    radial-gradient(42% 64% at 90% 100%,rgba(255,180,232,.6),transparent 70%);
+  filter:blur(8px);transition:opacity .7s ease}
+body[data-tone="light"] .clouds{opacity:.3}
+.steps{position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:6;pointer-events:none}
+.steps i{display:block;width:7px;height:7px;border-radius:999px;background:rgba(255,255,255,.32);transition:width .4s ease,background .4s ease}
+.steps i.done{background:rgba(255,200,97,.85)}
+.steps i.on{width:24px;background:linear-gradient(90deg,#ffc861,#ff8fcf)}
+body[data-tone="light"] .steps i{background:rgba(106,31,82,.2)}
+body[data-tone="light"] .steps i.done{background:rgba(210,31,150,.55)}
+body[data-tone="light"] .steps i.on{background:linear-gradient(90deg,#e39a2a,#d21f96)}
+.btn{position:relative;overflow:hidden}
+.btn::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.5) 50%,transparent 68%);transform:translateX(-130%);animation:shine 3.4s ease-in-out infinite}
+.btn:disabled::after,.btn.ghost::after{display:none}
+@keyframes shine{0%,62%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+.btn:not(:disabled){animation:glowpulse 2.6s ease-in-out infinite}
+@keyframes glowpulse{0%,100%{box-shadow:0 0 0 4px rgba(255,120,200,.18),0 10px 26px rgba(214,31,150,.45),inset 0 1px 0 rgba(255,255,255,.45)}50%{box-shadow:0 0 0 7px rgba(255,120,200,.1),0 12px 32px rgba(214,31,150,.6),inset 0 1px 0 rgba(255,255,255,.45)}}
+.btn.ghost:not(:disabled){animation:none}
+@media (max-width:480px){.btn{width:100%;max-width:340px}}
+.front{background-image:radial-gradient(circle,rgba(255,255,255,.6) 1.3px,transparent 2px),linear-gradient(165deg,#ffe3f6 0%,#fbbcec 55%,#f39bdf 100%);background-size:14px 14px,100% 100%}
+.card:not(.flipped):hover .card-in{transform:rotate(-2deg) translateY(-3px)}
+.back{background-image:radial-gradient(circle at 50% 0,rgba(255,200,97,.25),transparent 60%),linear-gradient(180deg,#fffdf8,#fff1dd)}
+.win rect{animation:wink 3.2s ease-in-out infinite}
+.win rect:nth-child(2){animation-delay:-.9s}.win rect:nth-child(3){animation-delay:-1.7s}.win rect:nth-child(4){animation-delay:-2.4s}.win rect:nth-child(5){animation-delay:-1.2s}
+@keyframes wink{0%,100%{opacity:1}50%{opacity:.45}}
+.art>*{animation:bob 7s ease-in-out infinite}
+.art.bob{animation:none}
+.glass,.invite,.letter,.note,.gift-row{position:relative}
+.invite::before{content:"";position:absolute;inset:6px;border-radius:14px;border:1px dashed rgba(227,154,42,.5);pointer-events:none}
+.scene[data-tone="light"] .sub{color:var(--plum)}
+h1.script{letter-spacing:.01em}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01s!important}
 }
@@ -274,7 +311,7 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
       <rect x="114" y="104" width="92" height="136" fill="#f6c6f3"/><rect x="176" y="104" width="30" height="136" fill="#e5a9e8"/>
       <path d="M104 106l56-80 56 80z" fill="#837ffa"/><path d="M160 26l56 80h-56z" fill="#6862ea"/>
       <!-- windows -->
-      <g fill="#ffd96e">
+      <g class="win" fill="#ffd96e">
         <rect x="37" y="182" width="14" height="20" rx="7"/><rect x="269" y="182" width="14" height="20" rx="7"/>
         <rect x="80" y="150" width="16" height="22" rx="8"/><rect x="80" y="196" width="16" height="22" rx="8"/>
         <rect x="222" y="150" width="16" height="22" rx="8"/><rect x="222" y="196" width="16" height="22" rx="8"/>
@@ -341,9 +378,11 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
 <div class="sky" data-sky="promise"></div>
 <div class="sky" data-sky="final"></div>
 <div class="sky" data-sky="hug"></div>
+<div class="clouds" aria-hidden="true"></div>
 <canvas class="fx" id="fx-bg" aria-hidden="true"></canvas>
 <canvas class="fx" id="fx-fg" aria-hidden="true"></canvas>
 
+<div class="steps" id="steps" aria-hidden="true"></div>
 <main class="stage">
 
   <!-- 1. the invitation -->
@@ -672,6 +711,14 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
   /* ================= moving between scenes ================= */
   let current = $("#s-intro"), busy = false;
   const onEnter = {}, onLeave = {};
+  const SCENES = $$("main .scene"), steps = $("#steps");
+  steps.innerHTML = SCENES.map(() => "<i></i>").join("");
+  function setSteps(sc) {
+    const k = SCENES.indexOf(sc);
+    $$("i", steps).forEach((d, i) => { d.classList.toggle("on", i === k); d.classList.toggle("done", i < k); });
+    document.body.dataset.tone = sc.dataset.tone || "dark";
+  }
+  setSteps(current);
   function go(id) {
     const next = $("#" + id);
     if (!next || next === current || busy) return;
@@ -684,6 +731,7 @@ h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 
       current = next; busy = false;
       $$(".sky").forEach(s => s.classList.toggle("on", s.dataset.sky === next.dataset.sky));
       mode = MODES[next.dataset.sky]; if (reduce) drawSky(0);
+      setSteps(next);
       window.scrollTo(0, 0);
       if (onEnter[id]) onEnter[id]();
     }, reduce ? 0 : 340);
