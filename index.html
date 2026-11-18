@@ -755,54 +755,74 @@ body[data-tone="light"] .music{background:rgba(255,255,255,.62);color:var(--plum
   }
   $$("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
 
-  /* ================= music box ================= */
-  /* A small original waltz played by a synthesised music box, so nothing has to download. */
+  /* ================= lullaby ================= */
+  /* A soft original lullaby in 3/4, played by a felt-piano sound with a warm pad and a long
+     reverb, all synthesised in the browser so nothing has to download. */
   const musicBtn = $("#music");
-  const BPM = 92, BEAT = 60 / BPM, BAR = 3, TOTAL = 48;
+  const BPM = 74, BEAT = 60 / BPM, BAR = 3, TOTAL = 48;
   const midi = n => 440 * Math.pow(2, (n - 69) / 12);
   const MEL = [
-    [76,1],[79,1],[84,1],  [83,2],[79,1],  [81,1],[84,1],[88,1],  [86,2],[84,1],
-    [88,1],[86,.5],[84,.5],[83,1],  [79,2],[81,1],  [81,1],[79,1],[77,1],  [76,3],
-    [84,1],[88,1],[81,1],  [83,1],[79,1],[76,1],  [77,1],[81,1],[84,1],  [86,2],[83,1],
-    [88,1],[91,1],[88,1],  [84,1.5],[83,.5],[81,1],  [77,1],[79,1],[81,1],  [79,1.5],[83,.5],[84,1]
+    [72,1],[76,1],[79,1],   [81,2],[79,1],   [77,1],[76,1],[74,1],   [71,2],[74,1],
+    [72,1],[76,1],[79,1],   [81,1.5],[79,.5],[76,1],   [77,1],[81,1],[79,1],   [74,3],
+    [76,1],[79,1],[81,1],   [79,2],[76,1],   [77,1],[74,1],[72,1],   [76,3],
+    [74,1],[77,1],[81,1],   [79,1.5],[77,.5],[74,1],   [76,1],[74,.5],[72,.5],[71,1],   [72,3]
   ];
-  const CH = [[48,52,55],[43,47,50],[45,48,52],[41,45,48],[48,52,55],[43,47,50],[41,45,48],[43,47,50],
-              [45,48,52],[40,43,47],[41,45,48],[43,47,50],[48,52,55],[45,48,52],[41,45,48],[43,47,50]];
+  const CH = [[48,52,55],[45,48,52],[41,45,48],[43,47,50], [48,52,55],[45,48,52],[41,45,48],[43,47,50],
+              [45,48,52],[40,43,47],[41,45,48],[48,52,55], [41,45,48],[43,47,50],[48,52,55],[48,52,55]];
   const EV = [];
   let beat = 0;
-  for (const [m, d] of MEL) { EV.push({ b: beat, m, v: .5, d: Math.max(1.1, d * BEAT * 1.6) }); beat += d; }
+  for (const [m, d] of MEL) { EV.push({ k: "key", b: beat, m, v: .3, d: Math.max(2.2, d * BEAT * 2) }); beat += d; }
   CH.forEach((c, i) => {
     const b0 = i * BAR;
-    EV.push({ b: b0, m: c[0], v: .34, d: 2.2 });
-    EV.push({ b: b0 + 1, m: c[1] + 12, v: .2, d: 1.2 });
-    EV.push({ b: b0 + 2, m: c[2] + 12, v: .2, d: 1.2 });
+    EV.push({ k: "key", b: b0, m: c[0], v: .2, d: 2.6 });
+    EV.push({ k: "key", b: b0 + 1, m: c[1] + 12, v: .11, d: 1.8 });
+    EV.push({ k: "key", b: b0 + 2, m: c[2] + 12, v: .11, d: 1.8 });
+    EV.push({ k: "pad", b: b0, m: c, v: .045, d: BAR * BEAT });
   });
   EV.sort((a, b) => a.b - b.b);
-  let ac = null, master = null, timer = null, evI = 0, loopStart = 0, musicOn = false, musicTouched = false;
+  let ac = null, master = null, keys = null, timer = null, evI = 0, loopStart = 0, musicOn = false, musicTouched = false;
+  function impulse(seconds, decay) {
+    const n = Math.floor(ac.sampleRate * seconds), buf = ac.createBuffer(2, n, ac.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, decay); }
+    return buf;
+  }
   function setupAudio() {
     ac = new (window.AudioContext || window.webkitAudioContext)();
     master = ac.createGain(); master.gain.value = 0;
-    const delay = ac.createDelay(1); delay.delayTime.value = .36;
-    const fb = ac.createGain(); fb.gain.value = .28;
-    const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2200;
-    const wet = ac.createGain(); wet.gain.value = .35;
-    master.connect(ac.destination);
-    master.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(ac.destination);
+    keys = ac.createBiquadFilter(); keys.type = "lowpass"; keys.frequency.value = 2400; keys.Q.value = .4;
+    const verb = ac.createConvolver(); verb.buffer = impulse(3.2, 3.2);
+    const wet = ac.createGain(); wet.gain.value = .55;
+    const dry = ac.createGain(); dry.gain.value = .8;
+    keys.connect(master);
+    master.connect(dry).connect(ac.destination);
+    master.connect(verb).connect(wet).connect(ac.destination);
   }
-  function pluck(f, t, vel, dur) {
-    const o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain(), g2 = ac.createGain();
-    o.type = "sine"; o.frequency.value = f;
-    o2.type = "sine"; o2.frequency.value = f * 4;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(vel * .16, t + .004); g2.gain.exponentialRampToValueAtTime(.0001, t + dur * .3);
-    o.connect(g).connect(master); o2.connect(g2).connect(master);
-    o.start(t); o2.start(t); o.stop(t + dur + .05); o2.stop(t + dur + .05);
+  function key(f, t, vel, dur) {
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel, t + .018); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    const parts = [["triangle", 1, 1], ["sine", 2, .22], ["sine", 3, .06]];
+    for (const [type, mul, amt] of parts) {
+      const o = ac.createOscillator(), pg = ac.createGain();
+      o.type = type; o.frequency.value = f * mul; o.detune.value = mul === 1 ? 0 : 3;
+      pg.gain.value = amt; o.connect(pg).connect(g); o.start(t); o.stop(t + dur + .05);
+    }
+    g.connect(keys);
+  }
+  function pad(chord, t, vel, dur) {
+    const g = ac.createGain(), lp = ac.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 650;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel, t + .7); g.gain.setValueAtTime(vel, t + dur - .3); g.gain.linearRampToValueAtTime(0, t + dur + .5);
+    for (const m of chord) for (const dt of [-5, 5]) {
+      const o = ac.createOscillator(); o.type = "sawtooth"; o.frequency.value = midi(m + 12); o.detune.value = dt;
+      o.connect(lp); o.start(t); o.stop(t + dur + .6);
+    }
+    lp.connect(g).connect(master);
   }
   function schedule() {
     for (;;) {
       const e = EV[evI], t = loopStart + e.b * BEAT;
-      if (t > ac.currentTime + .45) break;
-      pluck(midi(e.m), t, e.v, e.d);
+      if (t > ac.currentTime + .5) break;
+      if (e.k === "pad") pad(e.m, t, e.v, e.d); else key(midi(e.m), t, e.v, e.d);
       if (++evI >= EV.length) { evI = 0; loopStart += TOTAL * BEAT; }
     }
   }
@@ -811,13 +831,13 @@ body[data-tone="light"] .music{background:rgba(255,255,255,.62);color:var(--plum
     if (ac.state === "suspended") ac.resume();
     musicOn = true;
     master.gain.cancelScheduledValues(ac.currentTime);
-    master.gain.setTargetAtTime(.22, ac.currentTime, .4);
-    if (!timer) { evI = 0; loopStart = ac.currentTime + .15; schedule(); timer = setInterval(schedule, 120); }
+    master.gain.setTargetAtTime(.5, ac.currentTime, .6);
+    if (!timer) { evI = 0; loopStart = ac.currentTime + .2; schedule(); timer = setInterval(schedule, 120); }
     musicBtn.classList.add("on"); musicBtn.setAttribute("aria-pressed", "true"); musicBtn.setAttribute("aria-label", "Turn the music off");
   }
   function musicStop() {
     musicOn = false;
-    if (ac) { master.gain.cancelScheduledValues(ac.currentTime); master.gain.setTargetAtTime(0, ac.currentTime, .25); }
+    if (ac) { master.gain.cancelScheduledValues(ac.currentTime); master.gain.setTargetAtTime(0, ac.currentTime, .3); }
     clearInterval(timer); timer = null;
     musicBtn.classList.remove("on"); musicBtn.setAttribute("aria-pressed", "false"); musicBtn.setAttribute("aria-label", "Turn the music on");
   }
