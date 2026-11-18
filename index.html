@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>A Kingdom for My Princess</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Dancing+Script:wght@600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one scene per screen in a centred 460px column. Illustration on top, a script
+   heading, the scene's one interaction, then a single pink pill button that moves on.
+   The look is fixed (night purples and blush pinks), so there is no light/dark switch. */
+:root{
+  --night:#150f4a;
+  --ink:#fff5e6;            /* script headings on dark skies */
+  --ink-soft:#f3e6ff;       /* body text on dark skies */
+  --plum:#6a1f52;           /* headings on blush */
+  --plum-soft:#573048;      /* body text on blush */
+  --rose:#ff5fb3;
+  --rose-deep:#d21f96;
+  --gold:#ffc861;
+  --gold-deep:#e39a2a;
+  --cream:#fff8ec;
+  --paper-ink:#3d2a37;
+  --lilac:#cbb6ff;
+  --glass:rgba(255,255,255,.13);
+  --glass-line:rgba(255,255,255,.32);
+  --font-script:'Dancing Script','Brush Script MT','Segoe Script',cursive;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-hand:'Caveat','Segoe Print','Bradley Hand',cursive;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  display:flex;flex-direction:column;
+  background:var(--night);color:var(--ink-soft);
+  font:500 16px/1.6 var(--font-body);
+  -webkit-tap-highlight-color:transparent;
+}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+
+/* ---------- skies ---------- */
+.sky{position:fixed;inset:0;opacity:0;transition:opacity .7s ease;z-index:0}
+.sky.on{opacity:1}
+.sky[data-sky="intro"]{background:radial-gradient(120% 60% at 50% 110%,#f07bd3 0%,transparent 60%),linear-gradient(180deg,#150f4a 0%,#2a1785 34%,#7226c4 66%,#d24cc9 100%)}
+.sky[data-sky="welcome"]{background:radial-gradient(120% 55% at 50% 110%,#f5a2e2 0%,transparent 62%),linear-gradient(180deg,#22136a 0%,#4a1ea6 36%,#8b34cf 68%,#dc7fd9 100%)}
+.sky[data-sky="blush"]{background:radial-gradient(90% 50% at 20% 45%,#fff3fa 0%,transparent 70%),linear-gradient(180deg,#fdeaf4 0%,#f8c8e4 48%,#ef98d4 100%)}
+.sky[data-sky="cards"]{background:linear-gradient(180deg,#1f1466 0%,#40209e 38%,#6f2fca 72%,#8a3fd2 100%)}
+.sky[data-sky="promise"]{background:linear-gradient(180deg,#161050 0%,#2c1a7c 40%,#52279f 76%,#7a36b8 100%)}
+.sky[data-sky="final"]{background:radial-gradient(130% 55% at 50% 112%,#ff86c8 0%,transparent 62%),linear-gradient(180deg,#1f1263 0%,#55209f 34%,#a233c6 68%,#e765c0 100%)}
+.sky[data-sky="hug"]{background:radial-gradient(70% 45% at 50% 34%,#5a2396 0%,transparent 70%),linear-gradient(180deg,#160d40 0%,#2a1464 55%,#3d1a7c 100%)}
+canvas.fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#fx-bg{z-index:1}
+#fx-fg{z-index:5}
+
+/* ---------- scenes ---------- */
+.stage{flex:1;display:flex;flex-direction:column;position:relative;z-index:2}
+.scene{
+  flex:1;display:none;justify-content:center;
+  padding-block:clamp(28px,7vh,76px) 52px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  transition:opacity .34s ease;
+}
+.scene.is-active{display:flex}
+.scene.is-leaving{opacity:0}
+.scene[data-tone="light"]{color:var(--plum-soft)}
+.col{width:100%;max-width:460px;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.col>*{min-width:0}
+.scene.is-active .col>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.scene.is-active .col>*:nth-child(2){animation-delay:.08s}
+.scene.is-active .col>*:nth-child(3){animation-delay:.16s}
+.scene.is-active .col>*:nth-child(4){animation-delay:.24s}
+.scene.is-active .col>*:nth-child(5){animation-delay:.32s}
+.scene.is-active .col>*:nth-child(6){animation-delay:.4s}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.await{visibility:hidden}
+.shown{animation:pop .6s cubic-bezier(.2,.8,.2,1) both}
+
+/* ---------- type ---------- */
+.script{font-family:var(--font-script);font-weight:700;line-height:1.14;text-wrap:balance}
+h1.script{font-size:clamp(2rem,8.6vw,2.9rem);color:var(--ink);text-shadow:0 2px 18px rgba(255,160,230,.35)}
+.scene[data-tone="light"] h1.script{color:var(--plum);text-shadow:none}
+.sub{font-size:1.02rem;max-width:34ch;text-wrap:balance}
+.ic{width:1em;height:1em;fill:currentColor;vertical-align:-.14em;flex:none;--cut:#fff}
+.ic.gold{color:var(--gold)}
+.ic.rose{color:var(--rose)}
+.ic.deep{color:var(--rose-deep)}
+
+/* ---------- button ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  min-height:54px;padding:.7em 1.7em;border-radius:999px;
+  border:2px solid #ffc9a0;
+  background:linear-gradient(180deg,#ff72c0 0%,#e0289f 100%);
+  color:#fff;font-weight:800;font-size:1.06rem;letter-spacing:.01em;
+  box-shadow:0 0 0 4px rgba(255,120,200,.18),0 10px 26px rgba(214,31,150,.45),inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .18s ease,box-shadow .18s ease,opacity .3s ease,filter .3s ease;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(1px) scale(.98)}
+.btn:disabled{opacity:.45;filter:saturate(.6);cursor:not-allowed;transform:none}
+.btn.ghost{background:rgba(255,255,255,.1);border-color:rgba(203,182,255,.7);box-shadow:none;font-weight:700}
+.btn .ic{font-size:1.1em}
+
+/* ---------- art ---------- */
+.art{display:block;width:min(310px,82%);height:auto;overflow:visible}
+.art.wide{width:min(360px,96%)}
+.bob{animation:bob 6s ease-in-out infinite}
+
+/* ---------- scene 1: invitation ---------- */
+.intro-slot{display:grid;width:100%}
+.panel{
+  grid-area:1/1;display:flex;flex-direction:column;align-items:center;gap:16px;
+  opacity:0;visibility:hidden;transform:translateY(12px);
+  transition:opacity .45s ease,transform .45s ease,visibility 0s .45s;
+}
+#s-intro[data-step="hello"] .p-hello,
+#s-intro[data-step="envelope"] .p-env,
+#s-intro[data-step="card"] .p-card{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.crown-lg{font-size:2.6rem;filter:drop-shadow(0 4px 10px rgba(255,200,97,.5))}
+.env{position:relative;width:min(250px,72%);aspect-ratio:25/16;margin-top:86px;perspective:900px;filter:drop-shadow(0 18px 24px rgba(40,10,90,.45))}
+.env>*{position:absolute}
+.env-back{inset:0;border-radius:10px;background:#c92f9c}
+.env-flap{inset:0;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#ff8ad4,#ee4fb8);clip-path:polygon(0 0,100% 0,50% 58%);transform-origin:top;z-index:3;transition:transform .6s ease,z-index 0s .3s}
+.env-letter{left:8%;right:8%;top:8%;height:86%;border-radius:6px;background:linear-gradient(180deg,#fffdf7,#ffeccf);border:1.5px solid var(--gold);display:grid;place-items:center;font-size:1.7rem;z-index:1;transition:transform .75s cubic-bezier(.2,.8,.2,1)}
+.env-front{inset:0;border-radius:10px;background:linear-gradient(180deg,#f768c8,#de37a8);clip-path:polygon(0 0,50% 54%,100% 0,100% 100%,0 100%);z-index:2}
+.env-seal{left:50%;top:56%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe6a6,var(--gold-deep));display:grid;place-items:center;color:#fff;font-size:.95rem;z-index:4;transition:opacity .25s ease}
+.env.open .env-flap{transform:rotateX(180deg);z-index:0}
+.env.open .env-seal{opacity:0}
+.env.out .env-letter{transform:translateY(-62%)}
+.invite{
+  width:min(330px,100%);padding:26px 24px 22px;border-radius:20px;
+  background:linear-gradient(170deg,#fffdf8 0%,#fff3dc 60%,#ffe6c2 100%);
+  border:2px solid var(--gold);outline:1px solid rgba(227,154,42,.55);outline-offset:-9px;
+  box-shadow:0 0 0 5px rgba(255,200,97,.22),0 18px 40px rgba(60,10,110,.5),0 0 46px rgba(255,214,140,.45);
+  color:var(--plum);display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.invite .ic{font-size:2rem}
+.eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.32em;text-transform:uppercase;color:#8a4a2a}
+.invite p.script{font-size:1.5rem;font-weight:600;line-height:1.36}
+.seal{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1.25rem;color:#fff;background:radial-gradient(circle at 35% 30%,#ff8fcf,var(--rose-deep));box-shadow:0 4px 12px rgba(210,31,150,.4);animation:beat 1.8s ease-in-out infinite}
+
+/* ---------- scene 2: welcome ---------- */
+.glass{
+  width:100%;padding:20px 22px;border-radius:22px;
+  background:var(--glass);border:1px solid var(--glass-line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 14px 34px rgba(30,8,80,.28);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  color:#fff;text-align:left;
+}
+.glass p+p{margin-top:.9em}
+.chips{display:flex;justify-content:center;gap:8px;width:100%}
+.chip{flex:1 1 0;min-width:0;padding:12px 6px;border-radius:16px;background:linear-gradient(180deg,#fff,#fdeaf6);color:var(--plum);font-weight:800;font-size:.86rem;line-height:1.3;box-shadow:0 8px 20px rgba(60,10,110,.3)}
+.chip small{display:block;font-size:.86rem;font-weight:800;color:var(--rose-deep)}
+@media (max-width:359px){.chips{flex-direction:column}}
+
+/* ---------- scene 3: letter ---------- */
+.letter{position:relative;width:100%;padding:12px 12px 30px;border-radius:20px;background:linear-gradient(180deg,#f47cbc,#e254a6);box-shadow:0 18px 38px rgba(170,40,120,.32);cursor:pointer}
+.letter::after{content:"";position:absolute;left:16px;right:16px;bottom:10px;height:10px;background:radial-gradient(circle,#fff 0 3.4px,transparent 4px) 0 0/22px 10px repeat-x}
+.paper{background:linear-gradient(180deg,#fffdf8,#fff6e8);border-radius:10px;padding:20px 18px 22px;text-align:left;font-family:var(--font-hand);font-weight:500;font-size:1.36rem;line-height:1.42;color:var(--paper-ink)}
+.paper p+p{margin-top:.7em}
+.paper .greet{font-size:1.28rem}
+.paper .off{visibility:hidden}
+.corner{position:absolute;font-size:1.7rem;z-index:1}
+.corner.tl{left:-10px;top:-12px;transform:rotate(-24deg)}
+.corner.br{right:-10px;bottom:-8px;transform:rotate(18deg)}
+.corner.tr{right:14px;top:-18px;font-size:1.9rem;transform:rotate(8deg)}
+.hint{background:none;border:0;padding:4px 10px;font-size:.88rem;font-weight:700;color:var(--plum);opacity:.75;transition:opacity .3s}
+.hint.gone{opacity:0;pointer-events:none}
+
+/* ---------- scene 4: cards ---------- */
+.deck{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+.card{aspect-ratio:3/4;min-height:152px;padding:0;border:0;background:none;perspective:800px}
+.card-in{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.25,.5,1)}
+.card.flipped .card-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:16px;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.front{background:linear-gradient(165deg,#ffe3f6 0%,#fbbcec 55%,#f39bdf 100%);border:1px solid rgba(255,255,255,.8);box-shadow:0 10px 22px rgba(40,10,100,.35);color:var(--rose-deep)}
+.front .no{position:absolute;left:10px;top:8px;font-size:.66rem;font-weight:800;letter-spacing:.08em;color:#a0507f}
+.front .ic{font-size:1.9rem}
+.front .name{font-family:var(--font-script);font-weight:700;font-size:1.28rem;line-height:1.1;color:var(--plum)}
+.front .tap{font-size:.68rem;font-weight:700;letter-spacing:.06em;color:#a0507f}
+.back{transform:rotateY(180deg);background:linear-gradient(180deg,#fffdf8,#fff1dd);border:2px solid var(--gold);box-shadow:0 0 22px rgba(255,214,140,.5);color:var(--plum-soft)}
+.back .ic{font-size:1.15rem;color:var(--rose-deep)}
+.back .label{font-size:.64rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--rose-deep);line-height:1.25}
+.back .say{font-size:.82rem;font-weight:700;line-height:1.32}
+.counter{padding:6px 16px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid var(--glass-line);font-weight:700;font-size:.92rem;color:#fff;font-variant-numeric:tabular-nums}
+@media (max-width:359px){.deck{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- scene 5: gift ---------- */
+.gift-wrap{position:relative;width:min(300px,88%);margin-top:6px}
+.gift{display:block;width:62%;margin:0 auto;height:auto;overflow:visible;animation:wobble 2.6s ease-in-out infinite;transform-origin:50% 90%}
+.gift .lid,.gift .box{transform-box:fill-box;transform-origin:center;transition:transform .7s cubic-bezier(.3,.8,.3,1),opacity .6s ease}
+.gift.open{animation:none}
+.gift.open .lid{transform:translateY(-90px) rotate(-22deg);opacity:0}
+.gift.open .box{transform:scale(1.25);opacity:0}
+.balloon{position:absolute;width:15%;height:auto;animation:bob 5s ease-in-out infinite}
+.balloon.b1{left:0;top:6%}
+.balloon.b2{left:13%;top:34%;width:12%;animation-delay:-1.4s}
+.balloon.b3{right:0;top:0;animation-delay:-2.6s}
+.balloon.b4{right:12%;top:30%;width:11%;animation-delay:-.7s}
+.gifts{display:flex;flex-direction:column;gap:12px;width:100%}
+.gift-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.72);border:1px solid #fff;box-shadow:0 10px 22px rgba(190,60,140,.2);text-align:left;animation:pop .6s cubic-bezier(.2,.8,.2,1) both}
+.gift-row:nth-child(2){animation-delay:.14s}
+.gift-row:nth-child(3){animation-delay:.28s}
+.gift-row .tile{flex:none;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:#ffd9ee;color:var(--rose-deep);font-size:1.45rem}
+.gift-row h3{font-family:var(--font-script);font-size:1.4rem;line-height:1.1;color:var(--plum)}
+.gift-row p{font-size:.93rem;line-height:1.4}
+.gift-row>div{min-width:0}
+.note{position:relative;width:100%;padding:22px 20px 18px;border-radius:6px;background:linear-gradient(180deg,#fffdf8,#fff6e8);box-shadow:0 12px 26px rgba(190,60,140,.24);text-align:left;color:var(--paper-ink);animation:pop .6s .42s cubic-bezier(.2,.8,.2,1) both}
+.note::before{content:"";position:absolute;left:50%;top:-9px;width:88px;height:18px;margin-left:-44px;background:rgba(255,150,205,.75);transform:rotate(-2deg)}
+.note h3{font-family:var(--font-script);font-size:1.4rem;color:var(--plum);margin-bottom:4px}
+.note p{font-family:var(--font-hand);font-size:1.34rem;line-height:1.38}
+
+/* ---------- scene 6: promise ---------- */
+.vow{position:relative;margin-top:18px;text-align:center;border-color:rgba(255,160,220,.75);box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 28px rgba(255,120,200,.28)}
+.vow .pin{position:absolute;left:50%;top:-22px;margin-left:-22px;font-size:2.75rem;line-height:1;color:var(--rose);filter:drop-shadow(0 4px 10px rgba(255,95,179,.6));animation:beat 1.8s ease-in-out infinite}
+.vow p:first-of-type{margin-top:12px}
+.promises{display:flex;flex-direction:column;gap:10px;width:100%;margin:0;padding:0;list-style:none}
+.promises li{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:16px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.26);color:#fff;font-weight:800;text-align:left}
+.scene.is-active .promises li{animation:pop .6s cubic-bezier(.2,.8,.2,1) both}
+.scene.is-active .promises li:nth-child(1){animation-delay:.8s}
+.scene.is-active .promises li:nth-child(2){animation-delay:1.3s}
+.scene.is-active .promises li:nth-child(3){animation-delay:1.8s}
+.coin{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#ffe9ad,var(--gold-deep));color:#6b3a0c;font-size:.86rem;font-weight:800;box-shadow:0 2px 8px rgba(255,200,97,.5)}
+
+/* ---------- scene 7 and 8 ---------- */
+.sign{align-self:flex-end;text-align:right;font-family:var(--font-script);font-weight:700;font-size:1.55rem;line-height:1.25;color:#ffe0f2;padding-right:6px}
+.sign b{display:block;font-size:1.95rem;color:var(--ink)}
+.hug-line{font-size:clamp(1.6rem,6.6vw,2.1rem)!important;font-weight:600}
+#s-hug{align-items:center}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01s!important}
+}
+</style>
+
+<!-- shared drawings -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7.500-4.600-9.600-9.300C.9 8.200 2.900 4.500 6.600 4.500c2.200 0 3.900 1.100 5.400 3 1.500-1.900 3.200-3 5.400-3 3.700 0 5.700 3.700 4.200 7.200C19.500 16.400 12 21 12 21z"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3.200 17.500h17.600L22.500 7l-5.300 4.200L12 4 6.800 11.200 1.500 7z"/><rect x="3.200" y="18.800" width="17.600" height="2.400" rx="1.200"/><circle cx="12" cy="14" r="1.500" fill="#ff5fb3"/><circle cx="7.300" cy="14.800" r="1.100" fill="#8f7bff"/><circle cx="16.700" cy="14.800" r="1.100" fill="#8f7bff"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.600"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.900 4.900l2.100 2.100M17 17l2.100 2.100M4.900 19.100L7 17M17 7l2.100-2.100"/></g></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M10 2c.9 5.600 2.400 7.100 8 8-5.600.9-7.100 2.400-8 8-.9-5.600-2.400-7.100-8-8 5.600-.9 7.100-2.400 8-8z"/><path d="M19 14c.4 2.400 1.100 3.100 3.500 3.500-2.400.4-3.100 1.100-3.500 3.500-.4-2.400-1.100-3.100-3.500-3.500 2.400-.4 3.100-1.100 3.500-3.500z"/></symbol>
+    <symbol id="i-bow" viewBox="0 0 24 24"><path d="M12 11C9.300 6.300 4.800 4.800 2.800 6.200c-1.600 1.200-1.600 8.400 0 9.600 2 1.400 6.500-.1 9.200-4.800zM12 11c2.700-4.700 7.200-6.200 9.200-4.800 1.600 1.200 1.600 8.400 0 9.600-2 1.400-6.500-.1-9.200-4.800z"/><path d="M10.600 13.200l-2.300 7.600 3.700-3.200zM13.400 13.200l2.300 7.600-3.700-3.200z"/><circle cx="12" cy="11" r="2.500"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.200l2.900 6.300 6.900.8-5.100 4.700 1.400 6.800-6.100-3.400-6.100 3.400 1.400-6.800-5.100-4.700 6.900-.8z"/></symbol>
+    <symbol id="i-bear" viewBox="0 0 24 24"><circle cx="6.300" cy="6.600" r="3.300"/><circle cx="17.700" cy="6.600" r="3.300"/><circle cx="12" cy="13" r="8.200"/><ellipse cx="12" cy="15.300" rx="3.300" ry="2.600" fill="var(--cut)"/><circle cx="8.800" cy="11.300" r="1.100" fill="var(--cut)"/><circle cx="15.200" cy="11.300" r="1.100" fill="var(--cut)"/><circle cx="12" cy="14.500" r="1"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8.200 3v6.600c0 5-3.500 8.700-8.200 10.400-4.700-1.700-8.200-5.400-8.200-10.400V5z"/><path d="M8.300 12l2.700 2.700 4.800-5.200" fill="none" stroke="var(--cut)" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-rose" viewBox="0 0 24 24"><path d="M12 12.500V22" fill="none" stroke="#3f9b63" stroke-width="1.800" stroke-linecap="round"/><path d="M12 18c2.600-.2 4.200-1.500 4.800-3.600-2.400-.2-4 .9-4.800 3.600z" fill="#3f9b63"/><path d="M12 2.200c3.200 0 5.600 2.400 5.600 5.400S15.200 13 12 13 6.400 10.600 6.400 7.600 8.800 2.200 12 2.200z"/><path d="M8.300 6.200q3.700 3.200 7.400 0M9.300 9.800q2.700-2.400 5.400 0" fill="none" stroke="var(--cut)" stroke-width="1.200" stroke-linecap="round" opacity=".9"/></symbol>
+    <symbol id="i-hug" viewBox="0 0 24 24"><circle cx="8.400" cy="7.200" r="3.600"/><circle cx="16.300" cy="8.200" r="3"/><path d="M1.800 20.500c0-4.600 3-7.700 6.600-7.700s6.600 3.100 6.600 7.700z"/><path d="M13.800 13.300c.8-.4 1.600-.6 2.500-.6 3.300 0 5.900 2.900 5.900 7.800h-5.300c0-2.900-1.200-5.500-3.100-7.200z"/></symbol>
+    <symbol id="i-env" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2.500"/><path d="M3.500 7l8.500 6.500L20.500 7" fill="none" stroke="var(--cut)" stroke-width="1.700" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.200" y="10.500" width="17.600" height="11" rx="1.500"/><rect x="2" y="6.500" width="20" height="4.200" rx="1.300"/><rect x="10.600" y="6.500" width="2.800" height="15" fill="var(--cut)"/><path d="M12 6.300C10.500 2.600 6.800 2 6.300 4s2.800 2.800 5.700 2.300zM12 6.300c1.500-3.700 5.200-4.300 5.700-2.300s-2.800 2.800-5.700 2.300z"/></symbol>
+    <symbol id="i-flower" viewBox="0 0 24 24"><g><circle cx="12" cy="5.500" r="3.600"/><circle cx="18.200" cy="10" r="3.600"/><circle cx="15.800" cy="17.300" r="3.600"/><circle cx="8.200" cy="17.300" r="3.600"/><circle cx="5.800" cy="10" r="3.600"/></g><circle cx="12" cy="12" r="3" fill="var(--cut)"/></symbol>
+
+    <symbol id="castle" viewBox="0 0 320 250">
+      <ellipse cx="160" cy="241" rx="152" ry="8" fill="#0e0833" opacity=".4"/>
+      <g stroke="#ffd0ec" stroke-width="2" stroke-linecap="round"><path d="M90 64V40M160 28V4M230 64V40"/></g>
+      <g fill="#ff5fa8"><path d="M90 40l15 5-15 6zM160 4l17 6-17 6zM230 40l15 5-15 6z"/></g>
+      <!-- outer towers -->
+      <rect x="22" y="156" width="44" height="84" fill="#e3a2e6"/><rect x="50" y="156" width="16" height="84" fill="#cf89dc"/>
+      <rect x="254" y="156" width="44" height="84" fill="#e3a2e6"/><rect x="282" y="156" width="16" height="84" fill="#cf89dc"/>
+      <path d="M14 158l30-58 30 58z" fill="#7772f6"/><path d="M44 100l30 58H44z" fill="#5e58e2"/>
+      <path d="M246 158l30-58 30 58z" fill="#7772f6"/><path d="M276 100l30 58h-30z" fill="#5e58e2"/>
+      <!-- mid towers -->
+      <rect x="66" y="128" width="48" height="112" fill="#edb2ec"/><rect x="96" y="128" width="18" height="112" fill="#d996e0"/>
+      <rect x="206" y="128" width="48" height="112" fill="#edb2ec"/><rect x="236" y="128" width="18" height="112" fill="#d996e0"/>
+      <path d="M58 130l32-68 32 68z" fill="#7d79f8"/><path d="M90 62l32 68H90z" fill="#635de6"/>
+      <path d="M198 130l32-68 32 68z" fill="#7d79f8"/><path d="M230 62l32 68h-32z" fill="#635de6"/>
+      <!-- keep -->
+      <rect x="114" y="104" width="92" height="136" fill="#f6c6f3"/><rect x="176" y="104" width="30" height="136" fill="#e5a9e8"/>
+      <path d="M104 106l56-80 56 80z" fill="#837ffa"/><path d="M160 26l56 80h-56z" fill="#6862ea"/>
+      <!-- windows -->
+      <g fill="#ffd96e">
+        <rect x="37" y="182" width="14" height="20" rx="7"/><rect x="269" y="182" width="14" height="20" rx="7"/>
+        <rect x="80" y="150" width="16" height="22" rx="8"/><rect x="80" y="196" width="16" height="22" rx="8"/>
+        <rect x="222" y="150" width="16" height="22" rx="8"/><rect x="222" y="196" width="16" height="22" rx="8"/>
+        <rect x="124" y="178" width="14" height="20" rx="7"/><rect x="182" y="178" width="14" height="20" rx="7"/>
+        <rect x="147" y="118" width="26" height="40" rx="13"/>
+      </g>
+      <!-- someone waiting on the balcony -->
+      <g fill="#2a1048"><circle cx="160" cy="136" r="5.500"/><path d="M151 158c0-10 3.500-15 9-15s9 5 9 15z"/><path d="M155.500 131l1.800-4.500 2.700 3 2.700-3 1.800 4.500z"/></g>
+      <rect x="140" y="156" width="40" height="5" rx="2.500" fill="#ff7cba"/>
+      <g stroke="#ff7cba" stroke-width="2"><path d="M145 147v10M152 147v10M168 147v10M175 147v10"/></g>
+      <path d="M144 240v-32a16 16 0 0132 0v32z" fill="#6a3fc4"/><circle cx="169" cy="222" r="2.200" fill="#ffd96e"/>
+    </symbol>
+
+    <symbol id="princess" viewBox="0 0 120 170">
+      <path d="M33 50c0-19 12-31 27-31s27 12 27 31v38c0 6-4 9-9 9H42c-5 0-9-3-9-9z" fill="#3a2030"/>
+      <path d="M45 96h30l24 61c1.500 4.500-.500 8-5 8H26c-4.500 0-6.500-3.500-5-8z" fill="#ff7ab8"/>
+      <path d="M62 96h13l24 61c1.500 4.500-.500 8-5 8H78z" fill="#f45fa6"/>
+      <path d="M22 154c7-5 13 3 20-1s12 4 19 0 12 4 19 0 12-3 18 1l1 3c1.500 4.500-.500 8-5 8H26c-4.500 0-6.500-3.500-5-8z" fill="#ffd0e7"/>
+      <circle cx="44" cy="76" r="7.500" fill="#ff93c7"/><circle cx="76" cy="76" r="7.500" fill="#ff93c7"/>
+      <rect x="55.500" y="62" width="9" height="9" fill="#ffd3ba"/>
+      <path d="M46 76c0-5 3-8 8-8h12c5 0 8 3 8 8v22H46z" fill="#ff5fa8"/>
+      <path d="M52 68q8 9 16 0z" fill="#ffd3ba"/>
+      <rect x="45" y="94" width="30" height="5.500" rx="2.700" fill="#ffc861"/>
+      <g fill="none" stroke="#ffd9c2" stroke-width="6.500" stroke-linecap="round"><path d="M44 80q-7 9 12 15"/><path d="M76 80q7 9-12 15"/></g>
+      <circle cx="60" cy="46" r="21" fill="#ffdcc6"/>
+      <path d="M38.500 48c-1-15 9-26 21.500-26s22.500 11 21.500 26c-4-10-11-14-17-15-3 5-14 8-26 15z" fill="#3a2030"/>
+      <ellipse cx="52" cy="50" rx="2.300" ry="3.100" fill="#2b1626"/><ellipse cx="68" cy="50" rx="2.300" ry="3.100" fill="#2b1626"/>
+      <circle cx="46.500" cy="56" r="3.600" fill="#ff9fc0" opacity=".75"/><circle cx="73.500" cy="56" r="3.600" fill="#ff9fc0" opacity=".75"/>
+      <path d="M55 58q5 4 10 0" fill="none" stroke="#b0436a" stroke-width="1.700" stroke-linecap="round"/>
+      <path d="M48 25l2.500-11 5 6.500L60 10l4.500 10.500 5-6.500L72 25z" fill="#ffc861"/><circle cx="60" cy="20" r="1.800" fill="#ff5fb3"/>
+    </symbol>
+
+    <symbol id="prince" viewBox="0 0 110 170">
+      <rect x="39" y="116" width="13" height="42" fill="#2c2f73"/><rect x="58" y="116" width="13" height="42" fill="#2c2f73"/>
+      <rect x="35" y="152" width="19" height="12" rx="5" fill="#1c1840"/><rect x="56" y="152" width="19" height="12" rx="5" fill="#1c1840"/>
+      <g fill="none" stroke="#4f6ee0" stroke-width="9" stroke-linecap="round"><path d="M34 76q-7 16-1 32"/><path d="M76 76q7 16 1 32"/></g>
+      <circle cx="33" cy="111" r="4.800" fill="#ffd9c2"/><circle cx="77" cy="111" r="4.800" fill="#ffd9c2"/>
+      <path d="M33 74c0-6 4-9 10-9h24c6 0 10 3 10 9v50H33z" fill="#5d7df2"/>
+      <path d="M58 65h9c6 0 10 3 10 9v50H58z" fill="#4c6be0"/>
+      <path d="M35 70l41 40v11L33 80z" fill="#ff6fb0"/>
+      <rect x="33" y="108" width="44" height="6" fill="#ffc861"/>
+      <g fill="#ffc861"><circle cx="55" cy="78" r="2"/><circle cx="55" cy="88" r="2"/><circle cx="55" cy="98" r="2"/><ellipse cx="35" cy="69" rx="7" ry="4"/><ellipse cx="75" cy="69" rx="7" ry="4"/></g>
+      <rect x="50.500" y="58" width="9" height="9" fill="#ffd3ba"/>
+      <circle cx="55" cy="44" r="20" fill="#ffdcc6"/>
+      <path d="M34.500 44c-1-14 8-23 20.500-23s21.500 9 20.500 23c-4-8-10-11-20.500-11s-16.500 3-20.500 11z" fill="#4a2b22"/>
+      <ellipse cx="47.500" cy="47" rx="2.200" ry="3" fill="#2b1626"/><ellipse cx="62.500" cy="47" rx="2.200" ry="3" fill="#2b1626"/>
+      <circle cx="42.500" cy="53" r="3.300" fill="#ffab9f" opacity=".7"/><circle cx="67.500" cy="53" r="3.300" fill="#ffab9f" opacity=".7"/>
+      <path d="M50 55q5 4 10 0" fill="none" stroke="#a04a4a" stroke-width="1.700" stroke-linecap="round"/>
+      <path d="M44 24l2.500-10 4.500 6 4-9 4 9 4.500-6 2.500 10z" fill="#ffc861"/>
+    </symbol>
+
+    <symbol id="balloon" viewBox="0 0 40 110">
+      <path d="M20 50q-5 30 2 58" fill="none" stroke="currentColor" stroke-width="1.200" opacity=".55"/>
+      <ellipse cx="20" cy="24" rx="17" ry="22" fill="currentColor"/><path d="M16 45h8l-4 6z" fill="currentColor"/>
+      <ellipse cx="13" cy="15" rx="4" ry="7" fill="#fff" opacity=".45"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="sky on" data-sky="intro"></div>
+<div class="sky" data-sky="welcome"></div>
+<div class="sky" data-sky="blush"></div>
+<div class="sky" data-sky="cards"></div>
+<div class="sky" data-sky="promise"></div>
+<div class="sky" data-sky="final"></div>
+<div class="sky" data-sky="hug"></div>
+<canvas class="fx" id="fx-bg" aria-hidden="true"></canvas>
+<canvas class="fx" id="fx-fg" aria-hidden="true"></canvas>
+
+<main class="stage">
+
+  <!-- 1. the invitation -->
+  <section class="scene is-active" id="s-intro" data-sky="intro" data-step="hello">
+    <div class="col">
+      <svg class="art bob" viewBox="0 0 360 262" role="img" aria-label="A lilac castle under a crescent moon">
+        <path d="M312 30a24 24 0 1020 38 20 20 0 01-20-38z" fill="#ffe9b8"/>
+        <use href="#castle" x="20" y="12" width="320" height="250"/>
+      </svg>
+      <div class="intro-slot">
+        <div class="panel p-hello">
+          <svg class="ic gold crown-lg" aria-hidden="true"><use href="#i-crown"/></svg>
+          <h1 class="script">Make Way for Her Royal Highness… <svg class="ic gold" aria-hidden="true"><use href="#i-crown"/></svg></h1>
+          <p class="sub">A small royal surprise has been waiting all day, and it is only for you, Princess<span data-her></span>.</p>
+          <button class="btn" id="open-invite" type="button">Open Your Royal Invitation <svg class="ic" aria-hidden="true" style="--cut:#e0289f"><use href="#i-env"/></svg></button>
+        </div>
+        <div class="panel p-env" aria-hidden="true">
+          <div class="env" id="env">
+            <div class="env-back"></div>
+            <div class="env-flap"></div>
+            <div class="env-letter"><svg class="ic gold"><use href="#i-crown"/></svg></div>
+            <div class="env-front"></div>
+            <div class="env-seal"><svg class="ic"><use href="#i-heart"/></svg></div>
+          </div>
+        </div>
+        <div class="panel p-card">
+          <div class="invite">
+            <svg class="ic gold" aria-hidden="true"><use href="#i-crown"/></svg>
+            <p class="eyebrow">A Royal Summons</p>
+            <p class="script">You are warmly invited into a tiny kingdom built for one person only. It does not feel like a kingdom until you walk in.</p>
+            <span class="seal" aria-hidden="true"><svg class="ic"><use href="#i-heart"/></svg></span>
+          </div>
+          <button class="btn" type="button" data-go="s-welcome">Enter Your Kingdom <svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. welcome -->
+  <section class="scene" id="s-welcome" data-sky="welcome">
+    <div class="col">
+      <svg class="art wide" viewBox="0 0 360 236" role="img" aria-label="A princess in a pink gown standing in front of her castle">
+        <g stroke="#ffe2a8" stroke-width="1.500" opacity=".8"><path d="M52 0v58M92 0v86M276 0v70M316 0v40"/></g>
+        <g fill="#ffcf73"><rect x="46" y="58" width="12" height="18" rx="4"/><rect x="86" y="86" width="12" height="18" rx="4"/><rect x="270" y="70" width="12" height="18" rx="4"/><rect x="310" y="40" width="12" height="18" rx="4"/></g>
+        <use href="#castle" x="112" y="4" width="136" height="106" opacity=".9"/>
+        <path d="M28 150Q180 84 332 128V204Q180 168 28 214z" fill="#e58fdd"/>
+        <path d="M28 176Q180 132 332 158V204Q180 168 28 214z" fill="#f4b6ea"/>
+        <use href="#princess" x="139" y="62" width="82" height="116"/>
+        <g fill="#2f9e6b"><circle cx="52" cy="206" r="22"/><circle cx="82" cy="200" r="26"/><circle cx="112" cy="208" r="20"/><circle cx="262" cy="196" r="20"/><circle cx="292" cy="188" r="26"/><circle cx="320" cy="198" r="20"/></g>
+        <g fill="#ff5fa8"><circle cx="50" cy="198" r="6"/><circle cx="78" cy="188" r="6"/><circle cx="96" cy="208" r="6"/><circle cx="114" cy="198" r="5"/><circle cx="264" cy="188" r="6"/><circle cx="290" cy="176" r="6"/><circle cx="306" cy="196" r="6"/><circle cx="322" cy="188" r="5"/></g>
+        <g fill="#ffd0e7"><circle cx="50" cy="198" r="2.200"/><circle cx="78" cy="188" r="2.200"/><circle cx="96" cy="208" r="2.200"/><circle cx="264" cy="188" r="2.200"/><circle cx="290" cy="176" r="2.200"/><circle cx="306" cy="196" r="2.200"/></g>
+      </svg>
+      <h1 class="script">Welcome Home to Your Kingdom, Princess<span data-her></span> <svg class="ic rose" aria-hidden="true"><use href="#i-heart"/></svg></h1>
+      <div class="glass">
+        <p>If someone handed me a kingdom to design, I would design it around you. Every window would catch your smile, every road would lead to whatever makes you happy, and even a plain Tuesday would feel like a story worth telling.</p>
+      </div>
+      <div class="chips">
+        <div class="chip">Your laugh <small>= my favourite sound</small></div>
+        <div class="chip">Your happiness <small>= my mission</small></div>
+        <div class="chip">Your company <small>= my magic</small></div>
+      </div>
+      <button class="btn" type="button" data-go="s-letter">Show Me the Next Surprise <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg></button>
+    </div>
+  </section>
+
+  <!-- 3. the letter -->
+  <section class="scene" id="s-letter" data-sky="blush" data-tone="light">
+    <div class="col">
+      <h1 class="script">A Small Letter from Your Biggest Fan <svg class="ic deep" aria-hidden="true" style="--cut:#fdeaf4"><use href="#i-env"/></svg></h1>
+      <div class="letter" id="letter">
+        <svg class="ic deep corner tl" aria-hidden="true"><use href="#i-rose"/></svg>
+        <svg class="ic gold corner tr" aria-hidden="true"><use href="#i-crown"/></svg>
+        <svg class="ic deep corner br" aria-hidden="true"><use href="#i-rose"/></svg>
+        <div class="paper" id="letter-body"></div>
+      </div>
+      <button class="hint" id="letter-hint" type="button">Tap the letter to reveal it all</button>
+      <button class="btn await" id="letter-next" type="button" data-go="s-cards">Keep Going, My Princess… <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg></button>
+    </div>
+  </section>
+
+  <!-- 4. six cards -->
+  <section class="scene" id="s-cards" data-sky="cards">
+    <div class="col">
+      <h1 class="script">Six Reasons You Are One of a Kind <svg class="ic gold" aria-hidden="true" style="--cut:#ff8fcf"><use href="#i-flower"/></svg></h1>
+      <p class="sub">Tap each royal card to turn it over</p>
+      <div class="deck" id="deck"></div>
+      <p class="counter" id="counter" aria-live="polite">0 of 6 cards turned over</p>
+      <button class="btn" id="cards-next" type="button" data-go="s-gift" disabled>Unlock My Royal Gift <svg class="ic" aria-hidden="true"><use href="#i-crown"/></svg></button>
+    </div>
+  </section>
+
+  <!-- 5. the gift -->
+  <section class="scene" id="s-gift" data-sky="blush" data-tone="light">
+    <div class="col">
+      <h1 class="script">Your Princess Day Gift Has Arrived! <svg class="ic deep" aria-hidden="true" style="--cut:#fdeaf4"><use href="#i-gift"/></svg></h1>
+      <div class="col" id="gift-closed">
+        <p class="sub">Ready to see what is inside?</p>
+        <div class="gift-wrap">
+          <svg class="balloon b1" viewBox="0 0 40 110" style="color:#ff6fb5" aria-hidden="true"><use href="#balloon"/></svg>
+          <svg class="balloon b2" viewBox="0 0 40 110" style="color:#9f8cff" aria-hidden="true"><use href="#balloon"/></svg>
+          <svg class="balloon b3" viewBox="0 0 40 110" style="color:#ffc861" aria-hidden="true"><use href="#balloon"/></svg>
+          <svg class="balloon b4" viewBox="0 0 40 110" style="color:#ff8fc9" aria-hidden="true"><use href="#balloon"/></svg>
+          <svg class="gift" id="gift" viewBox="0 0 200 190" role="img" aria-label="A pink gift box tied with a gold ribbon">
+            <g class="box">
+              <rect x="30" y="78" width="140" height="104" rx="10" fill="#ff72b6"/>
+              <path d="M100 78h60a10 10 0 0110 10v84a10 10 0 01-10 10h-60z" fill="#f455a5"/>
+              <rect x="89" y="78" width="22" height="104" fill="#ffc861"/>
+              <rect x="30" y="120" width="140" height="18" fill="#ffc861"/>
+              <path d="M100 146s-15-9-19-18c-3-7 1-14 8-14 4.500 0 8 2.200 11 6 3-3.800 6.500-6 11-6 7 0 11 7 8 14-4 9-19 18-19 18z" fill="#ff4fa3" stroke="#fff" stroke-width="2.500"/>
+            </g>
+            <g class="lid">
+              <rect x="20" y="54" width="160" height="32" rx="9" fill="#ff8cc6"/>
+              <rect x="87" y="54" width="26" height="32" fill="#ffc861"/>
+              <path d="M100 52C88 26 58 22 54 36s22 20 46 16zM100 52c12-26 42-30 46-16s-22 20-46 16z" fill="#ffc861"/>
+              <path d="M100 52C92 36 72 33 70 41s14 13 30 11zM100 52c8-16 28-19 30-11s-14 13-30 11z" fill="#f2ab3c"/>
+              <circle cx="100" cy="52" r="8" fill="#e39a2a"/>
+            </g>
+          </svg>
+        </div>
+        <button class="btn" id="unwrap" type="button">Unwrap It <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg></button>
+      </div>
+      <div class="col" id="gift-open" hidden>
+        <div class="gifts">
+          <div class="gift-row"><span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-hug"/></svg></span><div><h3>A Long Hug</h3><p>The warm kind that lasts a little longer than it needs to.</p></div></div>
+          <div class="gift-row"><span class="tile"><svg class="ic" aria-hidden="true" style="--cut:#ffd9ee"><use href="#i-rose"/></svg></span><div><h3>A Bouquet of Roses</h3><p>One for each small way you make my days better.</p></div></div>
+          <div class="gift-row"><span class="tile"><svg class="ic" aria-hidden="true" style="--cut:#ffd9ee"><use href="#i-shield"/></svg></span><div><h3>A Royal Promise</h3><p>Your feelings will always be safe with me.</p></div></div>
+        </div>
+        <div class="note">
+          <h3>A Little Note for You</h3>
+          <p>Happy Princess Day! I hope today is as lovely to you as you are to everyone around you. You have earned every bit of it.</p>
+        </div>
+        <button class="btn" type="button" data-go="s-promise">One More Thing, Princess… <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. the promise -->
+  <section class="scene" id="s-promise" data-sky="promise">
+    <div class="col">
+      <svg class="art wide" viewBox="0 0 360 204" role="img" aria-label="A princess and a prince standing together on a castle balcony">
+        <use href="#castle" x="6" y="30" width="150" height="117" opacity=".4"/>
+        <path d="M40 0v36" stroke="#ffe2a8" stroke-width="1.500" opacity=".8"/><rect x="34" y="36" width="12" height="18" rx="4" fill="#ffcf73"/>
+        <rect x="22" y="98" width="316" height="8" rx="4" fill="#a48ef8"/>
+        <g fill="#8d75ef"><rect x="34" y="106" width="8" height="58"/><rect x="60" y="106" width="8" height="58"/><rect x="86" y="106" width="8" height="58"/><rect x="112" y="106" width="8" height="58"/><rect x="138" y="106" width="8" height="58"/><rect x="164" y="106" width="8" height="58"/><rect x="190" y="106" width="8" height="58"/><rect x="216" y="106" width="8" height="58"/><rect x="242" y="106" width="8" height="58"/><rect x="268" y="106" width="8" height="58"/><rect x="294" y="106" width="8" height="58"/><rect x="320" y="106" width="8" height="58"/></g>
+        <rect x="14" y="162" width="332" height="14" rx="5" fill="#7c5fe6"/>
+        <rect x="26" y="176" width="308" height="26" fill="#4d35b4" opacity=".75"/>
+        <use href="#princess" x="104" y="54" width="80" height="113"/>
+        <use href="#prince" x="186" y="52" width="74" height="114"/>
+        <g transform="translate(184 112) rotate(-20)"><path d="M0 4v20" stroke="#3f9b63" stroke-width="2" stroke-linecap="round"/><circle cx="0" cy="0" r="6" fill="#ff4f9d"/><circle cx="0" cy="0" r="2.400" fill="#ffc0de"/></g>
+      </svg>
+      <h1 class="script">My Promise to You, Princess <svg class="ic gold" aria-hidden="true"><use href="#i-crown"/></svg></h1>
+      <div class="glass vow">
+        <svg class="ic pin" aria-hidden="true"><use href="#i-heart"/></svg>
+        <p>Some days will be messy, and I will not always get things right. Here is what I can promise: I will keep learning how to love you well, I will be glad for every win you have, and I will never make you earn your place with me.</p>
+        <p>A crown does not make a princess. You were already worth kindness, respect and real love long before today.</p>
+      </div>
+      <ol class="promises">
+        <li><span class="coin">1</span>I will back your dreams</li>
+        <li><span class="coin">2</span>I will listen to how you feel</li>
+        <li><span class="coin">3</span>I will love the real you</li>
+      </ol>
+      <button class="btn" type="button" data-go="s-final">Open Your Final Surprise <svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg></button>
+    </div>
+  </section>
+
+  <!-- 7. the final message -->
+  <section class="scene" id="s-final" data-sky="final">
+    <div class="col">
+      <svg class="art" viewBox="0 0 360 232" role="img" aria-label="The princess and the prince in front of the castle">
+        <ellipse cx="180" cy="212" rx="124" ry="16" fill="#4a1f9c" opacity=".7"/>
+        <use href="#castle" x="84" y="0" width="192" height="150"/>
+        <use href="#princess" x="108" y="94" width="84" height="119"/>
+        <use href="#prince" x="180" y="96" width="76" height="117"/>
+      </svg>
+      <h1 class="script">Happy Princess Day, My Princess! <svg class="ic gold" aria-hidden="true"><use href="#i-crown"/></svg></h1>
+      <div class="glass">
+        <p>The whole world has a day for princesses today. Here is the part I want you to keep: you never needed a fairytale to be remarkable.</p>
+        <p>You carry your own kind of magic, your own dreams, and a story that is still getting better. I hope life hands you endless reasons to smile, the courage to go after what you want, and people who remind you how precious you are.</p>
+        <p>Stay bright. Stay dreaming. Stay exactly, wonderfully you.</p>
+        <p>Happy Princess Day, 18 November.</p>
+      </div>
+      <p class="sign"><span id="sign-line">With all my love,</span><b id="sign-name"></b></p>
+      <button class="btn" type="button" data-go="s-hug">Send Me a Royal Hug <svg class="ic" aria-hidden="true"><use href="#i-hug"/></svg></button>
+    </div>
+  </section>
+
+  <!-- 8. the hug -->
+  <section class="scene" id="s-hug" data-sky="hug">
+    <div class="col">
+      <svg class="art" viewBox="0 0 240 226" style="width:min(230px,62%)" role="img" aria-label="The prince hugging the princess">
+        <ellipse cx="120" cy="208" rx="88" ry="13" fill="#5a2aa8" opacity=".75"/>
+        <g transform="rotate(9 150 200)"><use href="#prince" x="96" y="34" width="104" height="161"/></g>
+        <use href="#princess" x="54" y="46" width="112" height="159"/>
+        <path d="M168 122q-26 22-60 10" fill="none" stroke="#4f6ee0" stroke-width="11" stroke-linecap="round"/>
+        <circle cx="106" cy="131" r="6" fill="#ffd9c2"/>
+      </svg>
+      <h1 class="script hug-line">Royal hug delivered! All the happiness in the kingdom belongs to you.</h1>
+      <button class="btn ghost" id="again" type="button">Back to the kingdom <svg class="ic rose" aria-hidden="true"><use href="#i-heart"/></svg></button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  /* ---- Personalise here: her name, and yours for the signature. Leave "" to skip. ---- */
+  const CONFIG = { her: "Subarna", from: "Apurba" };
+
+  const LETTER = [
+    "I can't hand you a castle, a vault of diamonds, or a crown of real gold. What I can give you is steadier than all of that: someone who listens properly, who notices the little things, and who looks for a reason to make you smile every single day.",
+    "You deserve gentleness when the day is heavy, joy when it is ordinary, and a love that never asks you to be anyone but yourself.",
+    "The calendar says Princess Day comes once a year. I would like you to feel this special on all the other days too."
+  ];
+  const CARDS = [
+    { icon: "sun",     name: "Your Smile",         say: "It turns a plain day into a good one." },
+    { icon: "heart",   name: "Your Heart",         say: "You are kind even when nobody is watching." },
+    { icon: "sparkle", name: "Your Eyes",          say: "They light up, and so does the room." },
+    { icon: "bow",     name: "Your Charm",         say: "You have a magic that is entirely your own." },
+    { icon: "star",    name: "Your Strength",      say: "You stay brave on the days that are hard." },
+    { icon: "bear",    name: "Your Little Habits", say: "The small things you do are my favourites." }
+  ];
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const wait = (fn, ms) => setTimeout(fn, reduce ? Math.min(ms, 40) : ms);
+  const show = el => { el.classList.remove("await"); el.classList.add("shown"); };
+  const hide = el => { el.classList.add("await"); el.classList.remove("shown"); };
+
+  const her = CONFIG.her.trim(), from = CONFIG.from.trim();
+  $$("[data-her]").forEach(e => { e.textContent = her ? " " + her : ""; });
+  if (from) $("#sign-name").textContent = from;
+  else { $("#sign-line").textContent = "Yours, always"; $("#sign-name").hidden = true; }
+  const letterText = ["Dear Princess" + (her ? " " + her : "") + ",", ...LETTER];
+
+  /* ================= ambient sky and bursts ================= */
+  const bg = $("#fx-bg"), fg = $("#fx-fg");
+  const bctx = bg.getContext("2d"), fctx = fg.getContext("2d");
+  let W = 0, H = 0;
+  const MODES = {
+    intro:   { stars: 1,   float: "heart", col: "#d9b8ff" },
+    welcome: { stars: 1,   float: "heart", col: "#ffc4ec" },
+    blush:   { stars: 0,   float: "petal", col: "#ff8cc8" },
+    cards:   { stars: 1,   float: "petal", col: "#e7a6ff" },
+    promise: { stars: 1,   float: "petal", col: "#ff9fd6" },
+    final:   { stars: 1,   float: "petal", col: "#ffb3e0" },
+    hug:     { stars: 1,   float: "heart", col: "#ff7fbf" }
+  };
+  let mode = MODES.intro;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const stars = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), r: rnd(.4, 1.6), p: rnd(0, 6.28), s: rnd(.5, 1.4), big: Math.random() < .13 }));
+  const floats = [], sparks = [];
+
+  function resize() {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    for (const c of [bg, fg]) { c.width = W * d; c.height = H * d; c.getContext("2d").setTransform(d, 0, 0, d, 0, 0); }
+    if (reduce) drawSky(0);
+  }
+  function heart(c, x, y, s, rot) {
+    c.save(); c.translate(x, y); c.rotate(rot || 0); c.scale(s / 16, s / 16);
+    c.beginPath(); c.moveTo(0, 9); c.bezierCurveTo(-18, -4, -9, -17, 0, -7); c.bezierCurveTo(9, -17, 18, -4, 0, 9); c.fill(); c.restore();
+  }
+  function twinkle(c, x, y, r) {
+    c.beginPath(); c.moveTo(x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r);
+    c.quadraticCurveTo(x, y, x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.fill();
+  }
+  function drawSky(t) {
+    bctx.clearRect(0, 0, W, H);
+    if (!mode.stars) return;
+    bctx.fillStyle = "#fff";
+    for (const s of stars) {
+      bctx.globalAlpha = reduce ? .7 : .3 + .7 * Math.abs(Math.sin(t * s.s + s.p));
+      if (s.big) twinkle(bctx, s.x * W, s.y * H, s.r * 4.5);
+      else { bctx.beginPath(); bctx.arc(s.x * W, s.y * H, s.r, 0, 6.29); bctx.fill(); }
+    }
+    bctx.globalAlpha = 1;
+  }
+  function spawnFloat() {
+    const up = mode.float === "heart";
+    floats.push({ x: rnd(0, W), y: up ? H + 20 : -20, vy: (up ? -1 : 1) * rnd(14, 34), s: rnd(6, 13), a: rnd(.3, .7), rot: rnd(0, 6.28), vr: rnd(-.8, .8), kind: mode.float, col: mode.col, ph: rnd(0, 6.28) });
+  }
+  function burst(x, y, n, make) { if (reduce) return; for (let i = 0; i < n; i++) sparks.push(Object.assign({ x, y, life: 0, rot: rnd(0, 6.28), vr: rnd(-6, 6) }, make(i))); }
+  const CONF = ["#ff5fb3", "#ffc861", "#cbb6ff", "#ffffff", "#ff9bd2"];
+  function confetti(x, y) {
+    burst(x, y, 90, i => { const a = rnd(0, 6.28), sp = rnd(80, 420); return { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 160, g: 460, drag: .986, max: rnd(1.3, 2.3), col: CONF[i % CONF.length], kind: i % 5 ? "conf" : "heart", s: rnd(5, 10) }; });
+  }
+  function firework(x, y, col) {
+    burst(x, y, 46, i => { const a = (i / 46) * 6.28 + rnd(-.1, .1), sp = rnd(70, 230); return { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 70, drag: .955, max: rnd(.9, 1.6), col: i % 3 ? col : "#fff", kind: "tw", s: rnd(3, 6.5) }; });
+  }
+  function hearts(x, y) {
+    burst(x, y, 14, () => ({ vx: rnd(-90, 90), vy: rnd(-220, -80), g: 60, drag: .97, max: rnd(1.2, 2.2), col: Math.random() < .5 ? "#ff5fb3" : "#ff9bd2", kind: "heart", s: rnd(9, 17), vr: rnd(-1, 1) }));
+  }
+  function tap(x, y) {
+    burst(x, y, 12, () => { const a = rnd(0, 6.28), sp = rnd(40, 150); return { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 40, drag: .94, max: rnd(.5, .9), col: Math.random() < .5 ? "#ffc861" : "#fff", kind: "tw", s: rnd(2.5, 5) }; });
+  }
+  let last = 0;
+  function frame(ms) {
+    const t = ms / 1000, dt = Math.min(.05, t - last || 0); last = t;
+    drawSky(t);
+    if (mode.float && floats.length < 13 && Math.random() < .03) spawnFloat();
+    for (let i = floats.length - 1; i >= 0; i--) {
+      const f = floats[i];
+      f.y += f.vy * dt; f.x += Math.sin(t * .8 + f.ph) * 14 * dt; f.rot += f.vr * dt;
+      if (f.y < -40 || f.y > H + 40) { floats.splice(i, 1); continue; }
+      bctx.globalAlpha = f.a; bctx.fillStyle = f.col;
+      if (f.kind === "heart") heart(bctx, f.x, f.y, f.s, Math.sin(t + f.ph) * .3);
+      else { bctx.save(); bctx.translate(f.x, f.y); bctx.rotate(f.rot); bctx.beginPath(); bctx.ellipse(0, 0, f.s * .7, f.s * .38, 0, 0, 6.29); bctx.fill(); bctx.restore(); }
+    }
+    bctx.globalAlpha = 1;
+    fctx.clearRect(0, 0, W, H);
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const p = sparks[i];
+      p.life += dt; if (p.life > p.max) { sparks.splice(i, 1); continue; }
+      const k = Math.pow(p.drag, dt * 60);
+      p.vx *= k; p.vy = p.vy * k + p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+      fctx.globalAlpha = Math.max(0, 1 - Math.pow(p.life / p.max, 2.2)); fctx.fillStyle = p.col;
+      if (p.kind === "heart") heart(fctx, p.x, p.y, p.s, p.rot * .15);
+      else if (p.kind === "tw") twinkle(fctx, p.x, p.y, p.s);
+      else { fctx.save(); fctx.translate(p.x, p.y); fctx.rotate(p.rot); fctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); fctx.restore(); }
+    }
+    fctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
+  resize(); window.addEventListener("resize", resize);
+  if (!reduce) requestAnimationFrame(frame);
+  const centre = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+  document.addEventListener("click", e => { if (e.target.closest(".btn,.card") && e.clientX) tap(e.clientX, e.clientY); });
+
+  /* ================= moving between scenes ================= */
+  let current = $("#s-intro"), busy = false;
+  const onEnter = {}, onLeave = {};
+  function go(id) {
+    const next = $("#" + id);
+    if (!next || next === current || busy) return;
+    busy = true;
+    current.classList.add("is-leaving");
+    setTimeout(() => {
+      if (onLeave[current.id]) onLeave[current.id]();
+      current.classList.remove("is-active", "is-leaving");
+      next.classList.add("is-active");
+      current = next; busy = false;
+      $$(".sky").forEach(s => s.classList.toggle("on", s.dataset.sky === next.dataset.sky));
+      mode = MODES[next.dataset.sky]; if (reduce) drawSky(0);
+      window.scrollTo(0, 0);
+      if (onEnter[id]) onEnter[id]();
+    }, reduce ? 0 : 340);
+  }
+  $$("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+
+  /* ================= 1. the envelope ================= */
+  const intro = $("#s-intro"), env = $("#env");
+  $("#open-invite").addEventListener("click", () => {
+    if (intro.dataset.step !== "hello") return;
+    intro.dataset.step = "envelope";
+    wait(() => env.classList.add("open"), 650);
+    wait(() => env.classList.add("out"), 1300);
+    wait(() => { intro.dataset.step = "card"; const [x, y] = centre($(".invite")); tap(x, y - 60); }, 2350);
+  });
+
+  /* ================= 3. the letter ================= */
+  const paper = $("#letter-body"), hint = $("#letter-hint"), letterNext = $("#letter-next");
+  let typer = null, letterDone = false;
+  function buildLetter() {
+    paper.textContent = "";
+    letterText.forEach((t, i) => {
+      const p = document.createElement("p"); if (!i) p.className = "greet";
+      const on = document.createElement("span"), off = document.createElement("span");
+      on.className = "on"; off.className = "off"; off.textContent = t;
+      p.append(on, off); paper.append(p);
+    });
+  }
+  function setTyped(n) {
+    let left = n;
+    $$("p", paper).forEach((p, i) => {
+      const t = letterText[i], k = Math.max(0, Math.min(t.length, left)); left -= t.length;
+      p.firstChild.textContent = t.slice(0, k); p.lastChild.textContent = t.slice(k);
+    });
+  }
+  function finishLetter() {
+    if (letterDone) return;
+    clearInterval(typer); typer = null; letterDone = true;
+    setTyped(1e9); hint.classList.add("gone"); show(letterNext);
+  }
+  onEnter["s-letter"] = () => {
+    if (letterDone) return;
+    if (reduce) return finishLetter();
+    const total = letterText.join("").length; let n = 0;
+    clearInterval(typer);
+    typer = setInterval(() => { n += 2; setTyped(n); if (n >= total) finishLetter(); }, 32);
+  };
+  onLeave["s-letter"] = () => clearInterval(typer);
+  $("#letter").addEventListener("click", finishLetter);
+  hint.addEventListener("click", finishLetter);
+  buildLetter(); setTyped(0);
+
+  /* ================= 4. the cards ================= */
+  const deck = $("#deck"), counter = $("#counter"), cardsNext = $("#cards-next");
+  deck.innerHTML = CARDS.map((c, i) => `
+    <button class="card" type="button" aria-pressed="false" aria-label="${c.name}. Tap to reveal.">
+      <span class="card-in">
+        <span class="face front"><span class="no">No. ${i + 1}</span><svg class="ic" aria-hidden="true" style="--cut:#fbbcec"><use href="#i-${c.icon}"/></svg><span class="name">${c.name}</span><span class="tap">tap to reveal</span></span>
+        <span class="face back"><svg class="ic" aria-hidden="true" style="--cut:#fff6e8"><use href="#i-${c.icon}"/></svg><span class="label">${c.name}</span><span class="say">${c.say}</span></span>
+      </span>
+    </button>`).join("");
+  function countCards() {
+    const n = $$(".card.flipped", deck).length;
+    counter.textContent = n === CARDS.length ? "All 6 turned over, and every one is true" : n + " of 6 cards turned over";
+    cardsNext.disabled = n < CARDS.length;
+  }
+  $$(".card", deck).forEach((card, i) => card.addEventListener("click", () => {
+    if (card.classList.contains("flipped")) return;
+    card.classList.add("flipped"); card.setAttribute("aria-pressed", "true");
+    card.setAttribute("aria-label", CARDS[i].name + ". " + CARDS[i].say);
+    countCards();
+    if ($$(".card.flipped", deck).length === CARDS.length) { const [x, y] = centre(deck); hearts(x, y); }
+  }));
+
+  /* ================= 5. the gift ================= */
+  const gift = $("#gift"), giftClosed = $("#gift-closed"), giftOpen = $("#gift-open");
+  $("#unwrap").addEventListener("click", () => {
+    if (gift.classList.contains("open")) return;
+    gift.classList.add("open");
+    const [x, y] = centre(gift); confetti(x, y);
+    wait(() => { giftClosed.hidden = true; giftOpen.hidden = false; window.scrollTo(0, 0); }, 850);
+  });
+
+  /* ================= 8. the hug ================= */
+  let show8 = null;
+  const FW = ["#ffc861", "#ff7fbf", "#cbb6ff", "#ffe9b8"];
+  onEnter["s-hug"] = () => {
+    const [x, y] = centre($("#s-hug .art"));
+    const beside = () => hearts(x + (Math.random() < .5 ? -1 : 1) * rnd(95, 130), y + rnd(-10, 40));
+    const fire = () => firework(rnd(W * .15, W * .85), rnd(H * .06, H * .3), FW[Math.floor(rnd(0, FW.length))]);
+    fire(); beside(); wait(fire, 260);
+    show8 = setInterval(() => { fire(); if (Math.random() < .5) beside(); }, 850);
+  };
+  onLeave["s-hug"] = () => clearInterval(show8);
+  $("#again").addEventListener("click", () => {
+    go("s-intro");
+    wait(() => {
+      intro.dataset.step = "hello"; env.classList.remove("open", "out");
+      letterDone = false; buildLetter(); setTyped(0); hide(letterNext); hint.classList.remove("gone");
+      $$(".card", deck).forEach((c, i) => { c.classList.remove("flipped"); c.setAttribute("aria-pressed", "false"); c.setAttribute("aria-label", CARDS[i].name + ". Tap to reveal."); });
+      countCards();
+      gift.classList.remove("open"); giftClosed.hidden = false; giftOpen.hidden = true;
+    }, 360);
+  });
+})();
+</script>
+
+</body></html>
